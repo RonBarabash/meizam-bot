@@ -23,7 +23,7 @@ func NewMeizam(connString string) *Meizam {
 	}
 }
 
-func (meizam *Meizam) GetUserState(userId int, facebookID string) (stateID int) {
+func (meizam *Meizam) GetUserState(userId int, facebookID string) (stateID int, lastMatchID int, lastDirection int) {
 	query := fmt.Sprintf("exec spGetBotUserState %s, %d", facebookID, userId)
 	res, err := meizam.db.Query(query)
 	if err != nil {
@@ -33,18 +33,18 @@ func (meizam *Meizam) GetUserState(userId int, facebookID string) (stateID int) 
 	for res.Next() {
 		var facebookID int64
 		var uid int
-		res.Scan(&facebookID, &uid, &stateID)
+		res.Scan(&facebookID, &uid, &stateID, &lastMatchID, &lastDirection)
 		fmt.Println(facebookID, uid, stateID)
 	}
 
 	if err != nil {
 		fmt.Println(err)
 	}
-	return stateID
+	return stateID, lastMatchID, lastDirection
 }
 
-func (meizam *Meizam) UpdateUserState(userId int, stateID int) error {
-	query := fmt.Sprintf("exec spUpdateBotUserState %d, %d", userId, stateID)
+func (meizam *Meizam) UpdateUserState(userId int, stateID int, lastMatchID int, lastDirection int) error {
+	query := fmt.Sprintf("exec spUpdateBotUserState %d, %d, %d, %d", userId, stateID, lastMatchID, lastDirection)
 	res, err := meizam.db.Query(query)
 	if err != nil {
 		fmt.Println(err)
@@ -72,4 +72,40 @@ func (meizam *Meizam) GetNextPredictionsToFill(userID int, tournamentID int, amo
 		fmt.Println(err)
 	}
 	return nextGames
+}
+
+func (meizam *Meizam) SendDirectionPrediction(userID int, tournamentID int, matchID int, direction int) error {
+	query := fmt.Sprintf("exec spAddSingleGameDirectionToTournament %d, %d, %d, %d", tournamentID, userID, matchID, direction)
+	res, err := meizam.db.Query(query)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer res.Close()
+	return err
+}
+
+func (meizam *Meizam) SendScorePrediction(userID int, tournamentID int, matchID int, homeTeamScore int, awayTeamScore int) error {
+	query := fmt.Sprintf("exec spAddSingleGameScoreToTournament %d, %d, %d, %d, %d", tournamentID, userID, matchID, homeTeamScore, awayTeamScore)
+	res, err := meizam.db.Query(query)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer res.Close()
+	return err
+}
+
+func (meizam *Meizam) GetMatchDetails(matchID int) (homeTeamID int, awayTeamID int) {
+	query := fmt.Sprintf("exec spGetMatchDetails %d", matchID)
+	res, err := meizam.db.Query(query)
+	if err != nil {
+		return 0, 0
+	}
+	defer res.Close()
+	for res.Next() {
+		res.Scan(&homeTeamID, &awayTeamID)
+		return homeTeamID, awayTeamID
+	}
+	return 0, 0
 }

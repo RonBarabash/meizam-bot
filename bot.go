@@ -24,9 +24,9 @@ func main() {
 	m := meizam.NewMeizam(connString)
 	messengerProvider := providers.NewFacebookMessengerProvider(messenger)
 
-	//messenger.Postback = suchefServer.BindPostbackReceived()
 	ctrl := controller.NewController(m, messengerProvider)
 	messenger.MessageReceived = ctrl.BindMessageReceived()
+	messenger.Postback = ctrl.BindPostbackReceived()
 	r := mux.NewRouter()
 	r.HandleFunc("/webhook", messenger.Handler)
 	http.Handle("/", r)
