@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/maciekmm/messenger-platform-go-sdk"
+	"github.com/meizam-bot/controller"
 )
 
 func main() {
@@ -14,7 +15,6 @@ func main() {
 		AppSecret:   os.Getenv("APP_SECRET"),
 		AccessToken: os.Getenv("PAGE_ACCESS_KEY"),
 	}
-
 
 	//dbConnectionParams := providers.DBConnectionParams{
 	//	User:     os.Getenv("DB_USER"),
@@ -36,7 +36,8 @@ func main() {
 
 	//messenger.MessageReceived = suchefServer.BindMessageReceived()
 	//messenger.Postback = suchefServer.BindPostbackReceived()
-
+	ctrl := controller.NewController()
+	messenger.MessageReceived = ctrl.BindMessageReceived()
 	r := mux.NewRouter()
 	r.HandleFunc("/webhook", messenger.Handler)
 	http.Handle("/", r)
