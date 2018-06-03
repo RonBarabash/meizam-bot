@@ -7,6 +7,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/maciekmm/messenger-platform-go-sdk"
 	"github.com/meizam-bot/controller"
+	"fmt"
+	_ "github.com/denisenkom/go-mssqldb"
+	"github.com/meizam-bot/meizam"
+	"github.com/meizam-bot/providers"
 )
 
 func main() {
@@ -16,27 +20,12 @@ func main() {
 		AccessToken: os.Getenv("PAGE_ACCESS_KEY"),
 	}
 
-	//dbConnectionParams := providers.DBConnectionParams{
-	//	User:     os.Getenv("DB_USER"),
-	//	Password: os.Getenv("DB_PASS"),
-	//	Address:  os.Getenv("DB_ADDRESS"),
-	//	DBName:   os.Getenv("DB_NAME"),
-	//}
+	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;database=MeizamDB", os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"))
+	m := meizam.NewMeizam(connString)
+	messengerProvider := providers.NewFacebookMessengerProvider(messenger)
 
-	//dataProvider, err := providers.NewBotDataProvider(dbConnectionParams)
-	//if err != nil {
-	//	fmt.Println("could not create suchef server. error: " + err.Error())
-	//	return
-	//}
-
-	//accountID := int64(1)
-
-	//suchefServer := server.NewSuchefServer(accountID, messenger, dataProvider, dataProvider, dataProvider)
-	//fmt.Println("server started successfully")
-
-	//messenger.MessageReceived = suchefServer.BindMessageReceived()
 	//messenger.Postback = suchefServer.BindPostbackReceived()
-	ctrl := controller.NewController()
+	ctrl := controller.NewController(m, messengerProvider)
 	messenger.MessageReceived = ctrl.BindMessageReceived()
 	r := mux.NewRouter()
 	r.HandleFunc("/webhook", messenger.Handler)
