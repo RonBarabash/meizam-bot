@@ -19,13 +19,13 @@ type Controller struct {
 func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHandler {
 	return func(event messenger.Event, opts messenger.MessageOpts, msg messenger.ReceivedMessage) {
 		fmt.Println("got message: " + msg.Text)
-		userId := 2119
 		facebookID := opts.Sender.ID
+		userId := controller.meizam.GetUserId(facebookID)
 		userState, lastMatchID, lastDirection := controller.meizam.GetUserState(userId, facebookID)
 		switch userState {
 		case 1:
 			//explain who u are
-			controller.messengerProvider.SendSimpleMessage(facebookID, "אהלן! אני שימי ואני כאן לעזור לך לסיים במקום הראשון במיזם! 🤑  ")
+			controller.messengerProvider.SendSimpleMessage(facebookID, "אהלן! אני ויטליק ואני כאן לעזור לך לסיים במקום הראשון במיזם! 🤑  ")
 			//send next games
 			controller.sendGames(userId, facebookID)
 			//update to next state
@@ -85,7 +85,7 @@ func (controller *Controller) BindPostbackReceived() messenger.PostbackHandler {
 		fakeMid := fmt.Sprintf("postback_%d", event.ID)
 		fmt.Println("got postback: " + fakeMid)
 		parts := strings.Split(postback.Payload, "-")
-		userId := 2119
+		userId := controller.meizam.GetUserId(facebookID)
 		switch parts[0] {
 		case "direction":
 			matchID, _ := strconv.Atoi(parts[1])
@@ -96,12 +96,27 @@ func (controller *Controller) BindPostbackReceived() messenger.PostbackHandler {
 			} else {
 				controller.meizam.UpdateUserState(userId, 3, matchID, direction)
 				controller.messengerProvider.SendSimpleMessage(facebookID, fmt.Sprintf("ומה תהיה התוצאה? "))
-				controller.messengerProvider.SendSimpleMessage(facebookID, fmt.Sprintf("אני יבין אם יכתבו לי משהו כמו 3-0"))
+				controller.messengerProvider.SendSimpleMessage(facebookID, fmt.Sprintf("אני אבין אם יכתבו לי משהו כמו 3-0"))
 			}
 		}
 	}
 }
 
+func (controller *Controller) BindAuthentication() messenger.AuthenticationHandler {
+	return func(event messenger.Event, opts messenger.MessageOpts, optin *messenger.Optin) {
+		fmt.Println(fmt.Sprintf("got optin for u_id: %v", optin.Ref))
+		userId, _ := strconv.Atoi(optin.Ref)
+		facebookID := opts.Sender.ID
+		userState, _, _ := controller.meizam.GetUserState(userId, facebookID)
+		if userState == 1 {
+			controller.messengerProvider.SendSimpleMessage(facebookID, "אהלן! אני ויטליק ואני כאן לעזור לך לסיים במקום הראשון במיזם! 🤑  ")
+		}
+		//send next games
+		controller.sendGames(userId, facebookID)
+		//update to next state
+		controller.meizam.UpdateUserState(userId, 2, 0, 0)
+	}
+}
 func NewController(meizam *meizam.Meizam, provider *providers.FacebookMessengerProvider) *Controller {
 	return &Controller{meizam, provider}
 }

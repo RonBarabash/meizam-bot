@@ -109,3 +109,16 @@ func (meizam *Meizam) GetMatchDetails(matchID int) (homeTeamID int, awayTeamID i
 	}
 	return 0, 0
 }
+
+func (meizam *Meizam) GetUserId(facebookID string) (userID int) {
+	query := fmt.Sprintf("exec spGetUserForFacebookBot %s", facebookID)
+	res, err := meizam.db.Query(query)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer res.Close()
+	for res.Next() {
+		res.Scan(&userID)
+	}
+	return userID
+}

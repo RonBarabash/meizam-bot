@@ -27,6 +27,7 @@ func main() {
 	ctrl := controller.NewController(m, messengerProvider)
 	messenger.MessageReceived = ctrl.BindMessageReceived()
 	messenger.Postback = ctrl.BindPostbackReceived()
+	messenger.Authentication = ctrl.BindAuthentication()
 	r := mux.NewRouter()
 	r.HandleFunc("/webhook", messenger.Handler)
 	http.Handle("/", r)
