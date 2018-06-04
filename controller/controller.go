@@ -22,6 +22,7 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 		facebookID := opts.Sender.ID
 		userId := controller.meizam.GetUserId(facebookID)
 		if userId == 0 {
+			controller.meizam.GetUserState(userId, facebookID)
 			controller.messengerProvider.SendSimpleMessage(facebookID, "צריך להרשם תחילה דרך האתר  - כי אין לי מושג מי את/ה")
 			controller.messengerProvider.SendSimpleMessage(facebookID, "אני אשמח לקבל אותך אחרי")
 			return
