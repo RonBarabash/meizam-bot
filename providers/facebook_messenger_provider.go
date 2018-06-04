@@ -75,6 +75,10 @@ func castButtonsToFacebookButtons(buttons []messaging.IButton) ([]template.Butto
 			return nil, err
 		}
 		facebookButton := template.Button{Type: facebookButtonType, Title: button.Title(), Payload: button.Payload()}
+		if facebookButtonType == "web_url" {
+			facebookButton.Payload = ""
+			facebookButton.URL = button.Payload()
+		}
 		facebookButtons = append(facebookButtons, facebookButton)
 	}
 	return facebookButtons, nil
