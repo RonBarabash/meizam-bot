@@ -6,11 +6,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/maciekmm/messenger-platform-go-sdk"
-	"github.com/meizam-bot/controller"
+	"github.com/RonBarabash/meizam-bot/controller"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/meizam-bot/meizam"
-	"github.com/meizam-bot/providers"
+	"github.com/RonBarabash/meizam-bot/meizam"
+	"github.com/RonBarabash/meizam-bot/providers"
 )
 
 func main() {
