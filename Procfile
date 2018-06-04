@@ -1,1 +1,1 @@
-“web: meizam-bot”
+web: meizam-bot
