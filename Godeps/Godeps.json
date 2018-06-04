@@ -1,0 +1,42 @@
+{
+	"ImportPath": "github.com/RonBarabash/meizam-bot",
+	"GoVersion": "go1.10",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "cloud.google.com/go/civil",
+			"Comment": "v0.23.0-27-g3ff38ec",
+			"Rev": "3ff38ec369a1b0b714fbe845a0ed445141cf537b"
+		},
+		{
+			"ImportPath": "github.com/denisenkom/go-mssqldb",
+			"Rev": "c12642a8f7884ab01719704032c36ff300ff52c6"
+		},
+		{
+			"ImportPath": "github.com/denisenkom/go-mssqldb/internal/cp",
+			"Rev": "c12642a8f7884ab01719704032c36ff300ff52c6"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "26a6070f849969ba72b72256e9f14cf519751690"
+		},
+		{
+			"ImportPath": "github.com/maciekmm/messenger-platform-go-sdk",
+			"Comment": "v5.0",
+			"Rev": "fe24182d420d43478bc44d1f5e728c2035b18114"
+		},
+		{
+			"ImportPath": "github.com/maciekmm/messenger-platform-go-sdk/template",
+			"Comment": "v5.0",
+			"Rev": "fe24182d420d43478bc44d1f5e728c2035b18114"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/md4",
+			"Rev": "7c6cc321c680f03b9ef0764448e780704f486b51"
+		}
+	]
+}
