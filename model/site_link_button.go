@@ -7,8 +7,7 @@ func (siteLinkButton *SiteLinkButton) Title() string {
 }
 
 func (siteLinkButton *SiteLinkButton) Payload() string {
-	//return "http://www.meizam.club/Home/SingleGames"
-	return "http://localhost:1632/Home/SingleGames"
+	return "http://www.meizam.club/Home/SingleGames"
 }
 
 func (siteLinkButton *SiteLinkButton) Type() string {
