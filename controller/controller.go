@@ -33,6 +33,11 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 		case 3:
 			homeTeamID, _ := controller.meizam.GetMatchDetails(lastMatchID)
 			parts := strings.Split(strings.TrimSpace(msg.Text), "-")
+			if len(parts) != 2 {
+				controller.messengerProvider.SendSimpleMessage(facebookID, "נא לנסות שוב")
+				fmt.Printf("dont understand this: " + msg.Text)
+				return
+			}
 			firstScore, _ := strconv.Atoi(parts[0])
 			secondScore, _ := strconv.Atoi(parts[1])
 			if lastDirection == 0 {
