@@ -22,10 +22,21 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 		facebookID := opts.Sender.ID
 		userId := controller.meizam.GetUserId(facebookID)
 		if userId == 0 {
-			controller.meizam.GetUserState(userId, facebookID)
-			controller.messengerProvider.SendSimpleMessage(facebookID, "צריך להרשם תחילה דרך האתר  - כי אין לי מושג מי את/ה")
-			controller.messengerProvider.SendSimpleMessage(facebookID, "אני אשמח לקבל אותך אחרי")
-			return
+			stateID, _, _ := controller.meizam.GetUserState(userId, facebookID)
+			if stateID == 1 {
+				err := controller.messengerProvider.SendSimpleMessage(facebookID, "צריך להרשם תחילה דרך האתר  - כי אין לי מושג מי את/ה")
+				if err != nil {
+					fmt.Println(err)
+				}
+				buttons := []messaging.IButton{model.NewSiteLinkButton()}
+				cards := []messaging.ICard{model.NewCard("הרשם לבוט באתר", "ואז תחזור אלי :)", "", buttons)}
+				err = controller.messengerProvider.SendGenericTemplate(facebookID, map[string]string{}, cards)
+				if err != nil {
+					fmt.Println(err)
+				}
+			} else if stateID == 3 {
+				controller.messengerProvider.SendSimpleMessage(facebookID, "עד שתרשם דרך האתר - אני לא אזכור דבר ממה שאתה אומר :)")
+			}
 		}
 		userState, lastMatchID, lastDirection := controller.meizam.GetUserState(userId, facebookID)
 		switch userState {
@@ -36,18 +47,29 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 			controller.sendGames(userId, facebookID)
 			//update to next state
 			controller.meizam.UpdateUserState(userId, 2, 0, 0)
+		case 2:
+			controller.messengerProvider.SendSimpleMessage(facebookID, "בגדול אני מחכה שתבחר כיוון...")
 		case 3:
 			homeTeamID, _ := controller.meizam.GetMatchDetails(lastMatchID)
 			parts := strings.Split(strings.TrimSpace(msg.Text), "-")
-			if len(parts) != 2 {
+			if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 				controller.messengerProvider.SendSimpleMessage(facebookID, "נא לנסות שוב")
-				fmt.Printf("dont understand this: " + msg.Text)
+				fmt.Println("dont understand this: " + msg.Text)
 				return
 			}
-			firstScore, _ := strconv.Atoi(parts[0])
-			secondScore, _ := strconv.Atoi(parts[1])
+			firstScore, errFirstPart := strconv.Atoi(parts[0])
+			secondScore, errSecondPart := strconv.Atoi(parts[1])
+			if (errFirstPart != nil || errSecondPart != nil) {
+				controller.messengerProvider.SendSimpleMessage(facebookID, "נא לענות בפורמט שביקשתי בלבד, ורק במספרים. לדוגמה: 2-1")
+				fmt.Println("dont understand this: " + msg.Text)
+				return
+			}
 			if lastDirection == 0 {
-				controller.meizam.SendScorePrediction(userId, 4, lastMatchID, firstScore, firstScore)
+				if (firstScore == secondScore) {
+					controller.meizam.SendScorePrediction(userId, 4, lastMatchID, firstScore, firstScore)
+				} else {
+					controller.messengerProvider.SendSimpleMessage(facebookID, "באת לשגע אותי? לא הבנתי - אז לא שמרתי את התוצאה")
+				}
 			} else {
 				if lastDirection == homeTeamID {
 					if firstScore > secondScore {
@@ -83,7 +105,7 @@ func (controller *Controller) sendGames(userId int, facebookID string) {
 		buttons = append(buttons, model.NewDirectionButton(game.AwayTeam, fmt.Sprintf("direction-%d-%d", game.MatchID, game.AwayTeamID)))
 		buttons = append(buttons, model.NewDirectionButton("תיקו", fmt.Sprintf("direction-%d-%d", game.MatchID, 0)))
 
-		gameCard := model.NewGameCard(fmt.Sprintf("%s-%s", game.HomeTeam, game.AwayTeam), "איך יסתיים?", "", buttons)
+		gameCard := model.NewCard(fmt.Sprintf("%s-%s", game.HomeTeam, game.AwayTeam), "איך יסתיים?", "", buttons)
 		gameCards = append(gameCards, gameCard)
 	}
 	quickReplies := make(map[string]string)
