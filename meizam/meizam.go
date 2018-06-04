@@ -3,7 +3,7 @@ package meizam
 import (
 	"database/sql"
 	"fmt"
-	"github.com/meizam-bot/model"
+	"github.com/RonBarabash/meizam-bot/model"
 )
 
 type Meizam struct {

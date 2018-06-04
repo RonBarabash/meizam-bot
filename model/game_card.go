@@ -1,6 +1,6 @@
 package model
 
-import "github.com/meizam-bot/interfaces"
+import "github.com/RonBarabash/meizam-bot/interfaces"
 
 type GameCard struct {
 	title    string

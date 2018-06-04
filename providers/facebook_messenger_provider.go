@@ -2,7 +2,7 @@ package providers
 
 import (
 	"github.com/maciekmm/messenger-platform-go-sdk"
-	"github.com/meizam-bot/interfaces"
+	"github.com/RonBarabash/meizam-bot/interfaces"
 	"github.com/maciekmm/messenger-platform-go-sdk/template"
 	"errors"
 )

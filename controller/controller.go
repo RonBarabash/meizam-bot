@@ -3,10 +3,10 @@ package controller
 import (
 	"github.com/maciekmm/messenger-platform-go-sdk"
 	"fmt"
-	"github.com/meizam-bot/meizam"
-	"github.com/meizam-bot/providers"
-	"github.com/meizam-bot/model"
-	"github.com/meizam-bot/interfaces"
+	"github.com/RonBarabash/meizam-bot/meizam"
+	"github.com/RonBarabash/meizam-bot/providers"
+	"github.com/RonBarabash/meizam-bot/model"
+	"github.com/RonBarabash/meizam-bot/interfaces"
 	"strings"
 	"strconv"
 )
