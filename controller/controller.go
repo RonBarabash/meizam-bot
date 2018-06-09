@@ -9,6 +9,7 @@ import (
 	"github.com/RonBarabash/meizam-bot/interfaces"
 	"strings"
 	"strconv"
+	"math/rand"
 )
 
 type Controller struct {
@@ -85,6 +86,7 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 					}
 				}
 				controller.meizam.UpdateUserState(userId, 2, 0, 0)
+				controller.messengerProvider.SendSimpleMessage(facebookID, "מעולה! שמרתי את החיזוי בהצלחה")
 				controller.sendGames(userId, facebookID)
 			}
 
@@ -129,7 +131,10 @@ func (controller *Controller) BindPostbackReceived() messenger.PostbackHandler {
 			} else {
 				controller.meizam.UpdateUserState(userId, 3, matchID, direction)
 				controller.messengerProvider.SendSimpleMessage(facebookID, fmt.Sprintf("ומה תהיה התוצאה? "))
-				controller.messengerProvider.SendSimpleMessage(facebookID, fmt.Sprintf("אני אבין אם יכתבו לי משהו כמו 3-0"))
+				firstRandomScore := rand.Intn(4)
+				secondRandomScore := rand.Intn(4)
+				expecting := fmt.Sprintf("%d-%d", firstRandomScore, secondRandomScore)
+				controller.messengerProvider.SendSimpleMessage(facebookID, fmt.Sprintf("אני אבין אם יכתבו לי משהו כמו %s", expecting))
 			}
 		}
 	}
