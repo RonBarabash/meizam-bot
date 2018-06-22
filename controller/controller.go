@@ -21,9 +21,9 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 	return func(event messenger.Event, opts messenger.MessageOpts, msg messenger.ReceivedMessage) {
 		fmt.Println("got message: " + msg.Text)
 		facebookID := opts.Sender.ID
-		userId := controller.meizam.GetUserId(facebookID)
-		if userId == 0 {
-			stateID, _, _ := controller.meizam.GetUserState(userId, facebookID)
+		userID := controller.meizam.GetUserId(facebookID)
+		if userID == 0 {
+			stateID, _, _ := controller.meizam.GetUserState(userID, facebookID)
 			if stateID == 1 {
 				err := controller.messengerProvider.SendSimpleMessage(facebookID, "צריך להרשם תחילה דרך האתר  - כי אין לי מושג מי את/ה")
 				if err != nil {
@@ -39,17 +39,23 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 				controller.messengerProvider.SendSimpleMessage(facebookID, "עד שתרשם דרך האתר - אני לא אזכור דבר ממה שאתה אומר :)")
 			}
 		}
-		userState, lastMatchID, lastDirection := controller.meizam.GetUserState(userId, facebookID)
+		userState, lastMatchID, lastDirection := controller.meizam.GetUserState(userID, facebookID)
 		switch userState {
 		case 1:
 			//explain who u are
 			controller.messengerProvider.SendSimpleMessage(facebookID, "אהלן! אני ויטליק ואני כאן לעזור לך לסיים במקום הראשון במיזם! 🤑  ")
 			//send next games
-			controller.sendGames(userId, facebookID)
+			controller.messengerProvider.SendSimpleMessage(facebookID, "אתה יכול לשלוח לי ׳יאללה׳ ואעזור לך למלא את המשחקים הבאים. אלה משחקים שעדיין לא חזית:")
+			controller.sendUnfilledGames(userID, facebookID)
 			//update to next state
-			controller.meizam.UpdateUserState(userId, 2, 0, 0)
+			controller.meizam.UpdateUserState(userID, 2, 0, 0)
 		case 2:
-			controller.messengerProvider.SendSimpleMessage(facebookID, "בגדול אני מחכה שתבחר כיוון...")
+			if msg.Text == "יאללה" {
+				controller.messengerProvider.SendSimpleMessage(facebookID, "הנה המשחקים שיש לנו היום")
+				controller.sendNextGames(userID, facebookID)
+			} else {
+				controller.messengerProvider.SendSimpleMessage(facebookID, "בגדול אני מחכה שתבחר כיוון...")
+			}
 		case 3:
 			homeTeamID, _ := controller.meizam.GetMatchDetails(lastMatchID)
 			parts := strings.Split(strings.TrimSpace(msg.Text), "-")
@@ -67,27 +73,26 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 			}
 			if lastDirection == 0 {
 				if (firstScore == secondScore) {
-					controller.meizam.SendScorePrediction(userId, 4, lastMatchID, firstScore, firstScore)
+					controller.meizam.SendScorePrediction(userID, 4, lastMatchID, firstScore, firstScore)
 				} else {
 					controller.messengerProvider.SendSimpleMessage(facebookID, "באת לשגע אותי? לא הבנתי - אז לא שמרתי את התוצאה")
 				}
 			} else {
 				if lastDirection == homeTeamID {
 					if firstScore > secondScore {
-						controller.meizam.SendScorePrediction(userId, 4, lastMatchID, firstScore, secondScore)
+						controller.meizam.SendScorePrediction(userID, 4, lastMatchID, firstScore, secondScore)
 					} else {
-						controller.meizam.SendScorePrediction(userId, 4, lastMatchID, secondScore, firstScore)
+						controller.meizam.SendScorePrediction(userID, 4, lastMatchID, secondScore, firstScore)
 					}
 				} else {
 					if firstScore > secondScore {
-						controller.meizam.SendScorePrediction(userId, 4, lastMatchID, secondScore, firstScore)
+						controller.meizam.SendScorePrediction(userID, 4, lastMatchID, secondScore, firstScore)
 					} else {
-						controller.meizam.SendScorePrediction(userId, 4, lastMatchID, firstScore, secondScore)
+						controller.meizam.SendScorePrediction(userID, 4, lastMatchID, firstScore, secondScore)
 					}
 				}
-				controller.meizam.UpdateUserState(userId, 2, 0, 0)
+				controller.meizam.UpdateUserState(userID, 2, 0, 0)
 				controller.messengerProvider.SendSimpleMessage(facebookID, "מעולה! שמרתי את החיזוי בהצלחה")
-				controller.sendGames(userId, facebookID)
 			}
 
 		default:
@@ -97,8 +102,17 @@ func (controller *Controller) BindMessageReceived() messenger.MessageReceivedHan
 	}
 }
 
-func (controller *Controller) sendGames(userId int, facebookID string) {
-	games := controller.meizam.GetNextPredictionsToFill(userId, 4, 3)
+func (controller *Controller) sendNextGames(userID int, facebookID string) {
+	games := controller.meizam.GetNextGames(userID, 4, 6)
+	controller.sendGames(userID, facebookID, games)
+}
+
+func (controller *Controller) sendUnfilledGames(userID int, facebookID string) {
+	games := controller.meizam.GetNextPredictionsToFill(userID, 4, 3)
+	controller.sendGames(userID, facebookID, games)
+}
+
+func (controller *Controller) sendGames(userID int, facebookID string, games []*model.NextGame) {
 	gameCards := []messaging.ICard{}
 	for _, game := range games {
 		buttons := []messaging.IButton{}
@@ -150,7 +164,7 @@ func (controller *Controller) BindAuthentication() messenger.AuthenticationHandl
 			controller.messengerProvider.SendSimpleMessage(facebookID, "אהלן! אני ויטליק ואני כאן לעזור לך לסיים במקום הראשון במיזם! 🤑  ")
 		}
 		//send next games
-		controller.sendGames(userId, facebookID)
+		controller.sendUnfilledGames(userId, facebookID)
 		//update to next state
 		controller.meizam.UpdateUserState(userId, 2, 0, 0)
 	}
