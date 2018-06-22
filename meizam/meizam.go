@@ -74,6 +74,27 @@ func (meizam *Meizam) GetNextPredictionsToFill(userID int, tournamentID int, amo
 	return nextGames
 }
 
+func (meizam *Meizam) GetNextGames(userID int, tournamentID int, amount int) []*model.NextGame {
+	query := fmt.Sprintf("exec spGetNextPredictionsInTournament %d, %d, %d", userID, tournamentID, amount)
+	res, err := meizam.db.Query(query)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer res.Close()
+	nextGames := []*model.NextGame{}
+	for res.Next() {
+		next := &model.NextGame{}
+		res.Scan(&next.MatchID, &next.HomeTeam, &next.HomeTeamID, &next.AwayTeam, &next.AwayTeamID, &next.StartTime)
+		nextGames = append(nextGames, next)
+	}
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	return nextGames
+}
+
 func (meizam *Meizam) SendDirectionPrediction(userID int, tournamentID int, matchID int, direction int) error {
 	query := fmt.Sprintf("exec spAddSingleGameDirectionToTournament %d, %d, %d, %d", tournamentID, userID, matchID, direction)
 	res, err := meizam.db.Query(query)
@@ -120,7 +141,5 @@ func (meizam *Meizam) GetUserId(facebookID string) (userID int) {
 	for res.Next() {
 		res.Scan(&userID)
 	}
-	// TEMP: for facebook reviewers, imbicils
-	return 2110
-	//return userID
+	return userID
 }
